@@ -40,6 +40,6 @@ public class SetDatabaseRecord implements WritableDatabaseRecord {
 
     @Override
     public int getValueSize() {
-        return value.length == 0 ? value.length : -1;
+        return value.length != 0 ? value.length : -1;
     }
 }

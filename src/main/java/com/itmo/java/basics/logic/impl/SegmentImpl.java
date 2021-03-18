@@ -46,7 +46,7 @@ public class SegmentImpl implements Segment {
 
     private void writeDatabaseRecord(WritableDatabaseRecord dbRecord) throws IOException {
         var dbOutputStream = new DatabaseOutputStream(new FileOutputStream(segmentPath.toString(), true));
-        segmentIndex.onIndexedEntityUpdated(new String(dbRecord.getKey()), new SegmentOffsetInfoImpl(segmentOffset + 1));
+        segmentIndex.onIndexedEntityUpdated(new String(dbRecord.getKey()), new SegmentOffsetInfoImpl(segmentOffset));
         segmentOffset += dbOutputStream.write(dbRecord);
     }
 
