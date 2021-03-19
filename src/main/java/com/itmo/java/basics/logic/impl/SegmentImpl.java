@@ -76,7 +76,7 @@ public class SegmentImpl implements Segment {
 
     @Override
     public boolean isReadOnly() {
-        return segmentPath.toFile().length() >= 1000000;
+        return segmentPath.toFile().length() >= 100000;
     }
 
     @Override
