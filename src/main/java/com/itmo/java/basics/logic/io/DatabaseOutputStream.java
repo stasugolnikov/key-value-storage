@@ -39,6 +39,7 @@ public class DatabaseOutputStream extends DataOutputStream {
         }
         writeInt(databaseRecord.getValueSize());
         write(databaseRecord.getValue());
+        close();
         return written;
     }
 }
