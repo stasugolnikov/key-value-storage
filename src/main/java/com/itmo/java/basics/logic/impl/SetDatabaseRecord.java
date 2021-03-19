@@ -30,7 +30,7 @@ public class SetDatabaseRecord implements WritableDatabaseRecord {
 
     @Override
     public boolean isValuePresented() {
-        return value.length != 0;
+        return value != null;
     }
 
     @Override
@@ -40,6 +40,6 @@ public class SetDatabaseRecord implements WritableDatabaseRecord {
 
     @Override
     public int getValueSize() {
-        return value.length != 0 ? value.length : -1;
+        return value != null ? value.length : -1;
     }
 }

@@ -5,6 +5,7 @@ import com.itmo.java.basics.index.impl.TableIndex;
 import com.itmo.java.basics.logic.Database;
 import com.itmo.java.basics.logic.Table;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,9 +23,10 @@ public class DatabaseImpl implements Database {
     }
 
     public static Database create(String dbName, Path databaseRoot) throws DatabaseException {
+        if (dbName == null) throw new DatabaseException("Name is null");
         Path databasePath;
         try {
-            databasePath = Files.createDirectory(Path.of(databaseRoot.toString() + dbName));
+            databasePath = Files.createDirectory(Path.of(databaseRoot.toString() + File.separator + dbName));
         } catch (IOException exception) {
             throw new DatabaseException(exception.getMessage());
         }
@@ -38,7 +40,8 @@ public class DatabaseImpl implements Database {
 
     @Override
     public void createTableIfNotExists(String tableName) throws DatabaseException {
-        if (tables.containsKey(tableName)) return;
+        if (tableName == null) throw new DatabaseException("Name is null");
+        if (tables.containsKey(tableName)) throw new DatabaseException("Table already exists");
         tables.put(tableName, TableImpl.create(tableName, databasePath, new TableIndex()));
     }
 

@@ -23,6 +23,7 @@ public class TableImpl implements Table {
     }
 
     static Table create(String tableName, Path pathToDatabaseRoot, TableIndex tableIndex) throws DatabaseException {
+        if (tableName == null) throw new DatabaseException("Name is null");
         Path tablePath;
         try {
             tablePath = Files.createDirectory(Path.of(pathToDatabaseRoot.toString() + File.separator + tableName));
