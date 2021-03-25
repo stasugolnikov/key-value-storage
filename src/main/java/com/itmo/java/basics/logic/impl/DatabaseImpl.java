@@ -41,7 +41,6 @@ public class DatabaseImpl implements Database {
 
     @Override
     public void createTableIfNotExists(String tableName) throws DatabaseException {
-        if (tableName == null) throw new DatabaseException("Table name is null");
         if (tables.containsKey(tableName))
             throw new DatabaseException(String.format("Table with name %s already exists", tableName));
         tables.put(tableName, TableImpl.create(tableName, databasePath, new TableIndex()));
