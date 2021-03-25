@@ -23,6 +23,7 @@ public class DatabaseImpl implements Database {
     }
 
     public static Database create(String dbName, Path databaseRoot) throws DatabaseException {
+        if (dbName == null) throw new DatabaseException("Database name is null");
         Path databasePath;
         try {
             databasePath = Files.createDirectory(Path.of(databaseRoot.toString() + File.separator + dbName));
