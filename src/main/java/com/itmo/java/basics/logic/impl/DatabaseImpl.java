@@ -23,12 +23,12 @@ public class DatabaseImpl implements Database {
     }
 
     public static Database create(String dbName, Path databaseRoot) throws DatabaseException {
-        if (dbName == null) throw new DatabaseException("Name is null");
         Path databasePath;
         try {
             databasePath = Files.createDirectory(Path.of(databaseRoot.toString() + File.separator + dbName));
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when creating database %s to path %s",
+                    dbName, databaseRoot.toString()), e);
         }
         return new DatabaseImpl(databasePath);
     }
@@ -40,26 +40,30 @@ public class DatabaseImpl implements Database {
 
     @Override
     public void createTableIfNotExists(String tableName) throws DatabaseException {
-        if (tableName == null) throw new DatabaseException("Name is null");
-        if (tables.containsKey(tableName)) throw new DatabaseException("Table already exists");
+        if (tableName == null) throw new DatabaseException("Table name is null");
+        if (tables.containsKey(tableName))
+            throw new DatabaseException(String.format("Table with name %s already exists", tableName));
         tables.put(tableName, TableImpl.create(tableName, databasePath, new TableIndex()));
     }
 
     @Override
     public void write(String tableName, String objectKey, byte[] objectValue) throws DatabaseException {
-        if (!tables.containsKey(tableName)) throw new DatabaseException("Nonexistent table");
+        if (!tables.containsKey(tableName))
+            throw new DatabaseException(String.format("Nonexistent table with name %s", tableName));
         tables.get(tableName).write(objectKey, objectValue);
     }
 
     @Override
     public Optional<byte[]> read(String tableName, String objectKey) throws DatabaseException {
-        if (!tables.containsKey(tableName)) throw new DatabaseException("Nonexistent table");
+        if (!tables.containsKey(tableName))
+            throw new DatabaseException(String.format("Nonexistent table with name %s", tableName));
         return tables.get(tableName).read(objectKey);
     }
 
     @Override
     public void delete(String tableName, String objectKey) throws DatabaseException {
-        if (!tables.containsKey(tableName)) throw new DatabaseException("Nonexistent table");
+        if (!tables.containsKey(tableName))
+            throw new DatabaseException(String.format("Nonexistent table with name %s", tableName));
         tables.get(tableName).delete(objectKey);
     }
 }

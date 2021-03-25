@@ -23,12 +23,12 @@ public class TableImpl implements Table {
     }
 
     static Table create(String tableName, Path pathToDatabaseRoot, TableIndex tableIndex) throws DatabaseException {
-        if (tableName == null) throw new DatabaseException("Name is null");
         Path tablePath;
         try {
             tablePath = Files.createDirectory(Path.of(pathToDatabaseRoot.toString() + File.separator + tableName));
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when creating table %s to path %s",
+                    tableName, pathToDatabaseRoot.toString()), e);
         }
         return new TableImpl(tablePath, tableIndex);
     }
@@ -53,8 +53,9 @@ public class TableImpl implements Table {
             updateSegment();
             curSegment.write(objectKey, objectValue);
             tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when writing key %s in table %s, segment %s",
+                    objectKey, getName(), curSegment.getName()), e);
         }
     }
 
@@ -64,15 +65,16 @@ public class TableImpl implements Table {
         if (segment.isEmpty()) return Optional.empty();
         try {
             return segment.get().read(objectKey);
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when reading key %s in table %s, segment %s",
+                    objectKey, getName(), curSegment.getName()), e);
         }
     }
 
     @Override
     public void delete(String objectKey) throws DatabaseException {
         Optional<Segment> segment = tableIndex.searchForKey(objectKey);
-        if (segment.isEmpty()) throw new DatabaseException("Nonexistent key");
+        if (segment.isEmpty()) throw new DatabaseException(String.format("Nonexistent key %s", objectKey));
         try {
             if (curSegment.delete(objectKey)) {
                 tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
@@ -81,8 +83,9 @@ public class TableImpl implements Table {
             updateSegment();
             curSegment.delete(objectKey);
             tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when deleting key %s in table %s, segment %s",
+                    objectKey, getName(), curSegment.getName()), e);
         }
     }
 }

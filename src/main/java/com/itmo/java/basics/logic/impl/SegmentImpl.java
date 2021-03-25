@@ -10,8 +10,13 @@ import com.itmo.java.basics.logic.WritableDatabaseRecord;
 import com.itmo.java.basics.logic.io.DatabaseInputStream;
 import com.itmo.java.basics.logic.io.DatabaseOutputStream;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class SegmentImpl implements Segment {
@@ -29,8 +34,9 @@ public class SegmentImpl implements Segment {
         Path segmentPath;
         try {
             segmentPath = Files.createFile(Paths.get(tableRootPath.toString() + File.separator + segmentName));
-        } catch (IOException exception) {
-            throw new DatabaseException(exception.getMessage());
+        } catch (IOException e) {
+            throw new DatabaseException(String.format("IO exception when creating segment %s to path %s",
+                    segmentName, tableRootPath.toString()), e);
         }
         return new SegmentImpl(segmentPath);
     }
