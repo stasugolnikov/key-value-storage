@@ -51,31 +51,39 @@ public class SegmentImpl implements Segment {
     }
 
     private void writeDatabaseRecord(WritableDatabaseRecord dbRecord) throws IOException {
-        var dbOutputStream = new DatabaseOutputStream(new FileOutputStream(segmentPath.toString(), true));
-        segmentIndex.onIndexedEntityUpdated(new String(dbRecord.getKey()), new SegmentOffsetInfoImpl(segmentOffset));
-        segmentOffset += dbOutputStream.write(dbRecord);
+        try (var dbOutputStream =
+                     new DatabaseOutputStream(new FileOutputStream(segmentPath.toString(), true))) {
+            segmentIndex.onIndexedEntityUpdated(new String(dbRecord.getKey()), new SegmentOffsetInfoImpl(segmentOffset));
+            segmentOffset += dbOutputStream.write(dbRecord);
+        }
     }
 
     @Override
     public boolean write(String objectKey, byte[] objectValue) throws IOException {
-        if (isReadOnly()) return false;
+        if (isReadOnly()) {
+            return false;
+        }
         var dbRecord = new SetDatabaseRecord(objectKey.getBytes(), objectValue);
         writeDatabaseRecord(dbRecord);
         return true;
     }
 
     private Optional<DatabaseRecord> readDatabaseRecord(long offset) throws IOException {
-        var fileInputStream = new FileInputStream(segmentPath.toString());
-        long skipped = fileInputStream.skip(offset);
-        if (skipped != offset) throw new IOException();
-        var dbInputStream = new DatabaseInputStream(fileInputStream);
-        return dbInputStream.readDbUnit();
+        try (var dbInputStream = new DatabaseInputStream(new FileInputStream(segmentPath.toString()))) {
+            long skipped = dbInputStream.skip(offset);
+            if (skipped != offset) {
+                throw new IOException("Error in skipping bytes in file " + dbInputStream.toString());
+            }
+            return dbInputStream.readDbUnit();
+        }
     }
 
     @Override
     public Optional<byte[]> read(String objectKey) throws IOException {
         Optional<SegmentOffsetInfo> offset = segmentIndex.searchForKey(objectKey);
-        if (offset.isEmpty()) return Optional.empty();
+        if (offset.isEmpty()) {
+            return Optional.empty();
+        }
         var dbRecord = readDatabaseRecord(offset.get().getOffset());
         return dbRecord.map(DatabaseRecord::getValue);
     }
@@ -87,7 +95,9 @@ public class SegmentImpl implements Segment {
 
     @Override
     public boolean delete(String objectKey) throws IOException {
-        if (isReadOnly()) return false;
+        if (isReadOnly()) {
+            return false;
+        }
         writeDatabaseRecord(new RemoveDatabaseRecord(objectKey.getBytes()));
         return true;
     }

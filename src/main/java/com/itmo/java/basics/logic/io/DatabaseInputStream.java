@@ -29,7 +29,9 @@ public class DatabaseInputStream extends DataInputStream {
         int keySize = readInt();
         byte[] key = readNBytes(keySize);
         int valueSize = readInt();
-        if (valueSize == REMOVED_OBJECT_SIZE) return Optional.empty();
+        if (valueSize == REMOVED_OBJECT_SIZE) {
+            return Optional.empty();
+        }
         byte[] value = readNBytes(valueSize);
         return Optional.of(new SetDatabaseRecord(key, value));
     }

@@ -23,7 +23,9 @@ public class TableImpl implements Table {
     }
 
     static Table create(String tableName, Path pathToDatabaseRoot, TableIndex tableIndex) throws DatabaseException {
-        if (tableName == null) throw new DatabaseException("Table name is null");
+        if (tableName == null) {
+            throw new DatabaseException("Table name is null");
+        }
         Path tablePath;
         try {
             tablePath = Files.createDirectory(Path.of(pathToDatabaseRoot.toString() + File.separator + tableName));
@@ -45,7 +47,9 @@ public class TableImpl implements Table {
 
     @Override
     public void write(String objectKey, byte[] objectValue) throws DatabaseException {
-        if (curSegment == null) updateSegment();
+        if (curSegment == null) {
+            updateSegment();
+        }
         try {
             if (curSegment.write(objectKey, objectValue)) {
                 tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
@@ -63,7 +67,9 @@ public class TableImpl implements Table {
     @Override
     public Optional<byte[]> read(String objectKey) throws DatabaseException {
         Optional<Segment> segment = tableIndex.searchForKey(objectKey);
-        if (segment.isEmpty()) return Optional.empty();
+        if (segment.isEmpty()) {
+            return Optional.empty();
+        }
         try {
             return segment.get().read(objectKey);
         } catch (IOException e) {
@@ -75,7 +81,9 @@ public class TableImpl implements Table {
     @Override
     public void delete(String objectKey) throws DatabaseException {
         Optional<Segment> segment = tableIndex.searchForKey(objectKey);
-        if (segment.isEmpty()) throw new DatabaseException(String.format("Nonexistent key %s", objectKey));
+        if (segment.isEmpty()) {
+            throw new DatabaseException(String.format("Nonexistent key %s", objectKey));
+        }
         try {
             if (curSegment.delete(objectKey)) {
                 tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
