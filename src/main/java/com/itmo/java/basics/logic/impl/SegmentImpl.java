@@ -83,7 +83,7 @@ public class SegmentImpl implements Segment {
         try (var dbInputStream = new DatabaseInputStream(new FileInputStream(segmentPath.toString()))) {
             long skipped = dbInputStream.skip(offset);
             if (skipped != offset) {
-                throw new IOException("Error in skipping bytes in file " + dbInputStream);
+                throw new IOException(String.format("Error in skipping bytes in file %s", getName()));
             }
             return dbInputStream.readDbUnit();
         }
