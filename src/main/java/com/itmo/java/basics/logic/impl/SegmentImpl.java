@@ -3,6 +3,7 @@ package com.itmo.java.basics.logic.impl;
 import com.itmo.java.basics.index.SegmentOffsetInfo;
 import com.itmo.java.basics.index.impl.SegmentIndex;
 import com.itmo.java.basics.index.impl.SegmentOffsetInfoImpl;
+import com.itmo.java.basics.initialization.SegmentInitializationContext;
 import com.itmo.java.basics.logic.DatabaseRecord;
 import com.itmo.java.basics.logic.Segment;
 import com.itmo.java.basics.exceptions.DatabaseException;
@@ -30,15 +31,25 @@ public class SegmentImpl implements Segment {
         this.segmentOffset = 0;
     }
 
-    static Segment create(String segmentName, Path tableRootPath) throws DatabaseException {
+    private SegmentImpl(Path segmentPath, SegmentIndex segmentIndex, long segmentOffset) {
+        this.segmentPath = segmentPath;
+        this.segmentIndex = segmentIndex;
+        this.segmentOffset = segmentOffset;
+    }
+
+    public static Segment create(String segmentName, Path tableRootPath) throws DatabaseException {
         Path segmentPath;
         try {
             segmentPath = Files.createFile(Paths.get(tableRootPath.toString() + File.separator + segmentName));
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when creating segment %s to path %s",
-                    segmentName, tableRootPath.toString()), e);
+                    segmentName, tableRootPath), e);
         }
         return new SegmentImpl(segmentPath);
+    }
+
+    public static Segment initializeFromContext(SegmentInitializationContext context) {
+        return new SegmentImpl(context.getSegmentPath(), context.getIndex(), context.getCurrentSize());
     }
 
     static String createSegmentName(String tableName) {
@@ -72,7 +83,7 @@ public class SegmentImpl implements Segment {
         try (var dbInputStream = new DatabaseInputStream(new FileInputStream(segmentPath.toString()))) {
             long skipped = dbInputStream.skip(offset);
             if (skipped != offset) {
-                throw new IOException("Error in skipping bytes in file " + dbInputStream.toString());
+                throw new IOException("Error in skipping bytes in file " + dbInputStream);
             }
             return dbInputStream.readDbUnit();
         }

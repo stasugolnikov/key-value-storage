@@ -2,6 +2,7 @@ package com.itmo.java.basics.logic.impl;
 
 import com.itmo.java.basics.exceptions.DatabaseException;
 import com.itmo.java.basics.index.impl.TableIndex;
+import com.itmo.java.basics.initialization.TableInitializationContext;
 import com.itmo.java.basics.logic.Segment;
 import com.itmo.java.basics.logic.Table;
 
@@ -14,15 +15,21 @@ import java.util.Optional;
 public class TableImpl implements Table {
     private final Path tablePath;
     private final TableIndex tableIndex;
-    private Segment curSegment;
+    private Segment currentSegment;
 
     private TableImpl(Path tablePath, TableIndex tableIndex) {
         this.tablePath = tablePath;
         this.tableIndex = tableIndex;
-        this.curSegment = null;
+        this.currentSegment = null;
     }
 
-    static Table create(String tableName, Path pathToDatabaseRoot, TableIndex tableIndex) throws DatabaseException {
+    private TableImpl(Path tablePath, TableIndex tableIndex, Segment currentSegment) {
+        this.tablePath = tablePath;
+        this.tableIndex = tableIndex;
+        this.currentSegment = currentSegment;
+    }
+
+    public static Table create(String tableName, Path pathToDatabaseRoot, TableIndex tableIndex) throws DatabaseException {
         if (tableName == null) {
             throw new DatabaseException("Table name is null");
         }
@@ -31,9 +38,14 @@ public class TableImpl implements Table {
             tablePath = Files.createDirectory(Path.of(pathToDatabaseRoot.toString() + File.separator + tableName));
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when creating table %s to path %s",
-                    tableName, pathToDatabaseRoot.toString()), e);
+                    tableName, pathToDatabaseRoot), e);
         }
-        return new TableImpl(tablePath, tableIndex);
+        return new CachingTable(new TableImpl(tablePath, tableIndex), new DatabaseCacheImpl(5000));
+    }
+
+    public static Table initializeFromContext(TableInitializationContext context) {
+        return new CachingTable(new TableImpl(context.getTablePath(), context.getTableIndex(), context.getCurrentSegment()),
+                new DatabaseCacheImpl(5000));
     }
 
     @Override
@@ -42,25 +54,25 @@ public class TableImpl implements Table {
     }
 
     private void updateSegment() throws DatabaseException {
-        curSegment = SegmentImpl.create(SegmentImpl.createSegmentName(getName()), tablePath);
+        currentSegment = SegmentImpl.create(SegmentImpl.createSegmentName(getName()), tablePath);
     }
 
     @Override
     public void write(String objectKey, byte[] objectValue) throws DatabaseException {
-        if (curSegment == null) {
+        if (currentSegment == null) {
             updateSegment();
         }
         try {
-            if (curSegment.write(objectKey, objectValue)) {
-                tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
+            if (currentSegment.write(objectKey, objectValue)) {
+                tableIndex.onIndexedEntityUpdated(objectKey, currentSegment);
                 return;
             }
             updateSegment();
-            curSegment.write(objectKey, objectValue);
-            tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
+            currentSegment.write(objectKey, objectValue);
+            tableIndex.onIndexedEntityUpdated(objectKey, currentSegment);
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when writing key %s in table %s, segment %s",
-                    objectKey, getName(), curSegment.getName()), e);
+                    objectKey, getName(), currentSegment.getName()), e);
         }
     }
 
@@ -74,7 +86,7 @@ public class TableImpl implements Table {
             return segment.get().read(objectKey);
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when reading key %s in table %s, segment %s",
-                    objectKey, getName(), curSegment.getName()), e);
+                    objectKey, getName(), currentSegment.getName()), e);
         }
     }
 
@@ -85,16 +97,16 @@ public class TableImpl implements Table {
             throw new DatabaseException(String.format("Nonexistent key %s", objectKey));
         }
         try {
-            if (curSegment.delete(objectKey)) {
-                tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
+            if (currentSegment.delete(objectKey)) {
+                tableIndex.onIndexedEntityUpdated(objectKey, currentSegment);
                 return;
             }
             updateSegment();
-            curSegment.delete(objectKey);
-            tableIndex.onIndexedEntityUpdated(objectKey, curSegment);
+            currentSegment.delete(objectKey);
+            tableIndex.onIndexedEntityUpdated(objectKey, currentSegment);
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when deleting key %s in table %s, segment %s",
-                    objectKey, getName(), curSegment.getName()), e);
+                    objectKey, getName(), currentSegment.getName()), e);
         }
     }
 }

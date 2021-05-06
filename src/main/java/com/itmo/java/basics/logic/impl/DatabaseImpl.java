@@ -2,6 +2,7 @@ package com.itmo.java.basics.logic.impl;
 
 import com.itmo.java.basics.exceptions.DatabaseException;
 import com.itmo.java.basics.index.impl.TableIndex;
+import com.itmo.java.basics.initialization.DatabaseInitializationContext;
 import com.itmo.java.basics.logic.Database;
 import com.itmo.java.basics.logic.Table;
 
@@ -21,6 +22,10 @@ public class DatabaseImpl implements Database {
         this.databasePath = databasePath;
         this.tables = new HashMap<>();
     }
+    private DatabaseImpl(Path databasePath, Map<String, Table> tables) {
+        this.databasePath = databasePath;
+        this.tables = tables;
+    }
 
     public static Database create(String dbName, Path databaseRoot) throws DatabaseException {
         if (dbName == null) {
@@ -31,9 +36,13 @@ public class DatabaseImpl implements Database {
             databasePath = Files.createDirectory(Path.of(databaseRoot.toString() + File.separator + dbName));
         } catch (IOException e) {
             throw new DatabaseException(String.format("IO exception when creating database %s to path %s",
-                    dbName, databaseRoot.toString()), e);
+                    dbName, databaseRoot), e);
         }
         return new DatabaseImpl(databasePath);
+    }
+
+    public static Database initializeFromContext(DatabaseInitializationContext context) {
+        return new DatabaseImpl(context.getDatabasePath(), context.getTables());
     }
 
     @Override
