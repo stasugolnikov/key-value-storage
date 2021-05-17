@@ -49,12 +49,12 @@ public class TableImpl implements Table {
             throw new DatabaseException(String.format("IO exception when creating table %s to path %s",
                     tableName, pathToDatabaseRoot), e);
         }
-        return new CachingTable(new TableImpl(tablePath, tableIndex), new DatabaseCacheImpl(5000));
+        return new CachingTable(new TableImpl(tablePath, tableIndex), new DatabaseCacheImpl());
     }
 
     public static Table initializeFromContext(TableInitializationContext context) {
         return new CachingTable(new TableImpl(context.getTablePath(), context.getTableIndex(), context.getCurrentSegment()),
-                new DatabaseCacheImpl(5000));
+                new DatabaseCacheImpl());
     }
 
     @Override
