@@ -2,8 +2,6 @@ package com.itmo.java.protocol.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Строка
@@ -41,15 +39,23 @@ public class RespBulkString implements RespObject {
         return data != null ? new String(data) : null;
     }
 
+    private byte[] intToByteArray(int value) {
+        return new byte[]{
+                (byte) (value >>> 24),
+                (byte) (value >>> 16),
+                (byte) (value >>> 8),
+                (byte) value};
+    }
+
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
         if (data == null) {
-            os.write(ByteBuffer.allocate(Integer.BYTES).putInt(NULL_STRING_SIZE).array());
+            os.write(intToByteArray(NULL_STRING_SIZE));
             os.write(CRLF);
             return;
         }
-        os.write(ByteBuffer.allocate(Integer.BYTES).putInt(data.length).array());
+        os.write(intToByteArray(data.length));
         os.write(CRLF);
         os.write(data);
         os.write(CRLF);
