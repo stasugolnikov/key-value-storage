@@ -18,11 +18,9 @@ public class DatabaseServer {
 
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final ExecutionEnvironment env;
-    private final DatabaseServerInitializer initializer;
 
-    private DatabaseServer(ExecutionEnvironment env, DatabaseServerInitializer initializer) {
+    private DatabaseServer(ExecutionEnvironment env) {
         this.env = env;
-        this.initializer = initializer;
     }
 
     /**
@@ -37,7 +35,7 @@ public class DatabaseServer {
                 .builder()
                 .executionEnvironment(env)
                 .build());
-        return new DatabaseServer(env, initializer);
+        return new DatabaseServer(env);
     }
 
     public CompletableFuture<DatabaseCommandResult> executeNextCommand(RespArray message) {
