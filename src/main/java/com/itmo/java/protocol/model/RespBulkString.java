@@ -41,21 +41,15 @@ public class RespBulkString implements RespObject {
         return data != null ? new String(data) : null;
     }
 
-    private byte[] intToByteArray(int value) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        byteBuffer.putInt(value);
-        return byteBuffer.array();
-    }
-
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
         if (data == null) {
-            os.write(intToByteArray(NULL_STRING_SIZE));
+            os.write(ByteBuffer.allocate(Integer.BYTES).putInt(NULL_STRING_SIZE).array());
             os.write(CRLF);
             return;
         }
-        os.write(intToByteArray(data.length));
+        os.write(ByteBuffer.allocate(Integer.BYTES).putInt(data.length).array());
         os.write(CRLF);
         os.write(data);
         os.write(CRLF);

@@ -47,9 +47,7 @@ public class RespArray implements RespObject {
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        byteBuffer.putInt(objects.size());
-        os.write(byteBuffer.array());
+        os.write(ByteBuffer.allocate(Integer.BYTES).putInt(objects.size()).array());
         os.write(CRLF);
         for (RespObject object : objects) {
             object.write(os);
