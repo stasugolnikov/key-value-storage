@@ -4,15 +4,21 @@ import com.itmo.java.basics.console.DatabaseCommand;
 import com.itmo.java.basics.console.DatabaseCommandArgPositions;
 import com.itmo.java.basics.console.DatabaseCommandResult;
 import com.itmo.java.basics.console.ExecutionEnvironment;
+import com.itmo.java.basics.exceptions.DatabaseException;
+import com.itmo.java.basics.logic.Database;
 import com.itmo.java.basics.logic.DatabaseFactory;
 import com.itmo.java.protocol.model.RespObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * Команда для создания базы данных
  */
 public class CreateDatabaseCommand implements DatabaseCommand {
+    private final ExecutionEnvironment env;
+    private final List<RespObject> commandArgs;
+    private final DatabaseFactory factory;
 
     /**
      * Создает команду.
@@ -26,7 +32,12 @@ public class CreateDatabaseCommand implements DatabaseCommand {
      * @throws IllegalArgumentException если передано неправильное количество аргументов
      */
     public CreateDatabaseCommand(ExecutionEnvironment env, DatabaseFactory factory, List<RespObject> commandArgs) {
-        //TODO implement
+        if (commandArgs.size() != 3) {
+            throw new IllegalArgumentException("Wrong amount of arguments");
+        }
+        this.env = env;
+        this.commandArgs = commandArgs;
+        this.factory = factory;
     }
 
     /**
@@ -36,7 +47,17 @@ public class CreateDatabaseCommand implements DatabaseCommand {
      */
     @Override
     public DatabaseCommandResult execute() {
-        //TODO implement
-        return null;
+        try {
+            Database database = factory.createNonExistent(
+                    commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString(),
+                    env.getWorkingPath());
+            env.addDatabase(database);
+        } catch (DatabaseException e) {
+            return DatabaseCommandResult.error(e);
+        }
+        return DatabaseCommandResult.success(
+                String.format("Database %s was created",
+                        commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString())
+                .getBytes(StandardCharsets.UTF_8));
     }
 }

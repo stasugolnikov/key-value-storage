@@ -4,14 +4,20 @@ import com.itmo.java.basics.console.DatabaseCommand;
 import com.itmo.java.basics.console.DatabaseCommandArgPositions;
 import com.itmo.java.basics.console.DatabaseCommandResult;
 import com.itmo.java.basics.console.ExecutionEnvironment;
+import com.itmo.java.basics.exceptions.DatabaseException;
+import com.itmo.java.basics.logic.Database;
 import com.itmo.java.protocol.model.RespObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Команда для создания записи значения
  */
 public class SetKeyCommand implements DatabaseCommand {
+    private final ExecutionEnvironment env;
+    private final List<RespObject> commandArgs;
 
     /**
      * Создает команду.
@@ -24,7 +30,11 @@ public class SetKeyCommand implements DatabaseCommand {
      * @throws IllegalArgumentException если передано неправильное количество аргументов
      */
     public SetKeyCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
-        //TODO implement
+        if (commandArgs.size() != 6) {
+            throw new IllegalArgumentException("Wrong amount of arguments");
+        }
+        this.env = env;
+        this.commandArgs = commandArgs;
     }
 
     /**
@@ -34,7 +44,24 @@ public class SetKeyCommand implements DatabaseCommand {
      */
     @Override
     public DatabaseCommandResult execute() {
-        //TODO implement
-        return null;
+        Optional<Database> database =
+                env.getDatabase(commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString());
+        if (database.isEmpty()) {
+            return DatabaseCommandResult.error(String.format("Database with name %s does not exist",
+                    commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString()));
+        }
+        Optional<byte[]> previous;
+        try {
+            previous = database.get().read(
+                    commandArgs.get(DatabaseCommandArgPositions.TABLE_NAME.getPositionIndex()).asString(),
+                    commandArgs.get(DatabaseCommandArgPositions.KEY.getPositionIndex()).asString());
+            database.get().write(
+                    commandArgs.get(DatabaseCommandArgPositions.TABLE_NAME.getPositionIndex()).asString(),
+                    commandArgs.get(DatabaseCommandArgPositions.KEY.getPositionIndex()).asString(),
+                    commandArgs.get(DatabaseCommandArgPositions.VALUE.getPositionIndex()).asString().getBytes(StandardCharsets.UTF_8));
+        } catch (DatabaseException e) {
+            return DatabaseCommandResult.error(e);
+        }
+        return DatabaseCommandResult.success(previous.orElse(null));
     }
 }
