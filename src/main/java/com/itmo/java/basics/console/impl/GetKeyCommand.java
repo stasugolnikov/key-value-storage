@@ -15,6 +15,7 @@ import java.util.Optional;
  * Команда для чтения данных по ключу
  */
 public class GetKeyCommand implements DatabaseCommand {
+    private final int VALID_ARGUMENTS_NUMBER = 5;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
 
@@ -29,7 +30,7 @@ public class GetKeyCommand implements DatabaseCommand {
      * @throws IllegalArgumentException если передано неправильное количество аргументов
      */
     public GetKeyCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
-        if (commandArgs.size() != 5) {
+        if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
             throw new IllegalArgumentException("Wrong amount of arguments");
         }
         this.env = env;

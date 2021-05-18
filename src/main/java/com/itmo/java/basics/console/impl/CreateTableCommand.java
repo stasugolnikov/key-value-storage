@@ -16,6 +16,7 @@ import java.util.Optional;
  * Команда для создания базы таблицы
  */
 public class CreateTableCommand implements DatabaseCommand {
+    private final int VALID_ARGUMENTS_NUMBER = 4;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
     /**
@@ -29,7 +30,7 @@ public class CreateTableCommand implements DatabaseCommand {
      * @throws IllegalArgumentException если передано неправильное количество аргументов
      */
     public CreateTableCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
-        if (commandArgs.size() != 4) {
+        if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
             throw new IllegalArgumentException("Wrong amount of arguments");
         }
         this.env = env;

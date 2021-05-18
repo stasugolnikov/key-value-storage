@@ -16,6 +16,7 @@ import java.util.Optional;
  * Команда для создания записи значения
  */
 public class SetKeyCommand implements DatabaseCommand {
+    private final int VALID_ARGUMENTS_NUMBER = 6;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
 
@@ -30,7 +31,7 @@ public class SetKeyCommand implements DatabaseCommand {
      * @throws IllegalArgumentException если передано неправильное количество аргументов
      */
     public SetKeyCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
-        if (commandArgs.size() != 6) {
+        if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
             throw new IllegalArgumentException("Wrong amount of arguments");
         }
         this.env = env;
