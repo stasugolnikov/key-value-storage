@@ -15,7 +15,7 @@ import java.util.Optional;
  * Команда для создания удаления значения по ключу
  */
 public class DeleteKeyCommand implements DatabaseCommand {
-    private final int VALID_ARGUMENTS_NUMBER = 5;
+    private static final int VALID_ARGUMENTS_NUMBER = 5;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
 

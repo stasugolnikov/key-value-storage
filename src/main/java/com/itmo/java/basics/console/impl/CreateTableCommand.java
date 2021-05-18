@@ -16,9 +16,10 @@ import java.util.Optional;
  * Команда для создания базы таблицы
  */
 public class CreateTableCommand implements DatabaseCommand {
-    private final int VALID_ARGUMENTS_NUMBER = 4;
+    private static final int VALID_ARGUMENTS_NUMBER = 4;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
+
     /**
      * Создает команду
      * <br/>
@@ -58,8 +59,8 @@ public class CreateTableCommand implements DatabaseCommand {
         }
         return DatabaseCommandResult.success(
                 String.format("Table %s in database %s created",
-                    commandArgs.get(DatabaseCommandArgPositions.TABLE_NAME.getPositionIndex()).asString(),
-                    commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString())
-                .getBytes(StandardCharsets.UTF_8));
+                        commandArgs.get(DatabaseCommandArgPositions.TABLE_NAME.getPositionIndex()).asString(),
+                        commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString())
+                        .getBytes(StandardCharsets.UTF_8));
     }
 }

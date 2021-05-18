@@ -16,7 +16,7 @@ import java.util.List;
  * Команда для создания базы данных
  */
 public class CreateDatabaseCommand implements DatabaseCommand {
-    private final int VALID_ARGUMENTS_NUMBER = 3;
+    private static final int VALID_ARGUMENTS_NUMBER = 3;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
     private final DatabaseFactory factory;

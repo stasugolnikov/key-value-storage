@@ -16,7 +16,7 @@ import java.util.Optional;
  * Команда для создания записи значения
  */
 public class SetKeyCommand implements DatabaseCommand {
-    private final int VALID_ARGUMENTS_NUMBER = 6;
+    private static final int VALID_ARGUMENTS_NUMBER = 6;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
 

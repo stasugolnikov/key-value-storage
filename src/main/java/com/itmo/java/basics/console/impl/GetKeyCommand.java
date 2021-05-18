@@ -15,7 +15,7 @@ import java.util.Optional;
  * Команда для чтения данных по ключу
  */
 public class GetKeyCommand implements DatabaseCommand {
-    private final int VALID_ARGUMENTS_NUMBER = 5;
+    private  static final int VALID_ARGUMENTS_NUMBER = 5;
     private final ExecutionEnvironment env;
     private final List<RespObject> commandArgs;
 
