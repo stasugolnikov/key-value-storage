@@ -32,13 +32,13 @@ public class RespCommandId implements RespObject {
 
     @Override
     public String asString() {
-        return String.valueOf(commandId);
+        return Integer.toString(commandId);
     }
 
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
-        os.write(Integer.toString(commandId).getBytes(StandardCharsets.UTF_8));
+        os.write(asString().getBytes(StandardCharsets.UTF_8));
         os.write(CRLF);
     }
 }

@@ -1,7 +1,6 @@
 package com.itmo.java.basics.console.impl;
 
 import com.itmo.java.basics.console.DatabaseCommandResult;
-import com.itmo.java.protocol.model.RespBulkString;
 import com.itmo.java.protocol.model.RespError;
 import com.itmo.java.protocol.model.RespObject;
 
@@ -35,6 +34,6 @@ public class FailedDatabaseCommandResult implements DatabaseCommandResult {
      */
     @Override
     public RespObject serialize() {
-        return new RespBulkString(payload.getBytes(StandardCharsets.UTF_8));
+        return new RespError(payload.getBytes(StandardCharsets.UTF_8));
     }
 }
