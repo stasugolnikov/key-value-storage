@@ -2,6 +2,7 @@ package com.itmo.java.protocol.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,18 +44,10 @@ public class RespArray implements RespObject {
         return objects.stream().map(RespObject::asString).collect(Collectors.joining(" "));
     }
 
-    private byte[] intToByteArray(int value) {
-        return new byte[]{
-                (byte) (value >>> 24),
-                (byte) (value >>> 16),
-                (byte) (value >>> 8),
-                (byte) value};
-    }
-
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
-        os.write(intToByteArray(objects.size()));
+        os.write(ByteBuffer.allocate(Integer.BYTES).putInt(objects.size()).array());
         os.write(CRLF);
         for (RespObject object : objects) {
             object.write(os);
