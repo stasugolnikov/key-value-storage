@@ -31,7 +31,7 @@ public class GetKeyCommand implements DatabaseCommand {
      */
     public GetKeyCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
         if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
-            throw new IllegalArgumentException("Wrong amount of arguments");
+            throw new IllegalArgumentException("Wrong number of arguments");
         }
         this.env = env;
         this.commandArgs = commandArgs;

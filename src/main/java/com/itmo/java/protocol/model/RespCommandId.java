@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 /**
  * Id
@@ -39,7 +40,7 @@ public class RespCommandId implements RespObject {
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(Integer.BYTES);
         byteBuffer.putInt(commandId);
         os.write(byteBuffer.array());
         os.write(CRLF);

@@ -2,8 +2,7 @@ package com.itmo.java.protocol.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +47,9 @@ public class RespArray implements RespObject {
     @Override
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
-        os.write(Integer.toString(objects.size()).getBytes(StandardCharsets.UTF_8));
+        ByteBuffer byteBuffer = ByteBuffer.allocate(Integer.BYTES);
+        byteBuffer.putInt(objects.size());
+        os.write(byteBuffer.array());
         os.write(CRLF);
         for (RespObject object : objects) {
             object.write(os);
