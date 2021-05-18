@@ -42,7 +42,7 @@ public class RespBulkString implements RespObject {
     }
 
     private byte[] intToByteArray(int value) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(Integer.BYTES);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(value);
         return byteBuffer.array();
     }
