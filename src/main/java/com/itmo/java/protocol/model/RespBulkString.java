@@ -2,7 +2,7 @@ package com.itmo.java.protocol.model;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Строка
@@ -44,11 +44,11 @@ public class RespBulkString implements RespObject {
     public void write(OutputStream os) throws IOException {
         os.write(CODE);
         if (data == null) {
-            os.write(ByteBuffer.allocate(Integer.BYTES).putInt(NULL_STRING_SIZE).array());
+            os.write(Integer.toString(NULL_STRING_SIZE).getBytes(StandardCharsets.UTF_8));
             os.write(CRLF);
             return;
         }
-        os.write(ByteBuffer.allocate(Integer.BYTES).putInt(data.length).array());
+        os.write(Integer.toString(data.length).getBytes(StandardCharsets.UTF_8));
         os.write(CRLF);
         os.write(data);
         os.write(CRLF);
