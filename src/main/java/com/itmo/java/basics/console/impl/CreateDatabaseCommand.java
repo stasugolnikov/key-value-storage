@@ -34,7 +34,8 @@ public class CreateDatabaseCommand implements DatabaseCommand {
      */
     public CreateDatabaseCommand(ExecutionEnvironment env, DatabaseFactory factory, List<RespObject> commandArgs) {
         if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
-            throw new IllegalArgumentException("Wrong number of arguments");
+            throw new IllegalArgumentException(String.format("Wrong number of arguments: expected %d, but was provided %d",
+                    VALID_ARGUMENTS_NUMBER, commandArgs.size()));
         }
         this.env = env;
         this.commandArgs = commandArgs;
@@ -59,6 +60,6 @@ public class CreateDatabaseCommand implements DatabaseCommand {
         return DatabaseCommandResult.success(
                 String.format("Database %s was created",
                         commandArgs.get(DatabaseCommandArgPositions.DATABASE_NAME.getPositionIndex()).asString())
-                .getBytes(StandardCharsets.UTF_8));
+                        .getBytes(StandardCharsets.UTF_8));
     }
 }

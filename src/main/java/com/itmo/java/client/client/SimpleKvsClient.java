@@ -28,9 +28,7 @@ public class SimpleKvsClient implements KvsClient {
         this.connectionSupplier = connectionSupplier;
     }
 
-    @Override
-    public String createDatabase() throws DatabaseExecutionException {
-        KvsCommand command = new CreateDatabaseKvsCommand(databaseName);
+    private RespObject handleCommandResult(KvsCommand command) throws DatabaseExecutionException {
         RespObject result;
         try {
             result = connectionSupplier.get().send(command.getCommandId(), command.serialize());
@@ -42,74 +40,41 @@ public class SimpleKvsClient implements KvsClient {
             throw new DatabaseExecutionException(String.format("Error when executing command %s",
                     command.serialize().asString()));
         }
+        return result;
+    }
+
+    @Override
+    public String createDatabase() throws DatabaseExecutionException {
+        KvsCommand command = new CreateDatabaseKvsCommand(databaseName);
+        RespObject result = handleCommandResult(command);
         return result.asString();
     }
 
     @Override
     public String createTable(String tableName) throws DatabaseExecutionException {
         KvsCommand command = new CreateTableKvsCommand(databaseName, tableName);
-        RespObject result;
-        try {
-            result = connectionSupplier.get().send(command.getCommandId(), command.serialize());
-        } catch (ConnectionException e) {
-            throw new DatabaseExecutionException(String.format("ConnectionException when sending command %s",
-                    command.serialize().asString()), e);
-        }
-        if (result.isError()) {
-            throw new DatabaseExecutionException(String.format("Error when executing command %s",
-                    command.serialize().asString()));
-        }
+        RespObject result = handleCommandResult(command);
         return result.asString();
     }
 
     @Override
     public String get(String tableName, String key) throws DatabaseExecutionException {
         KvsCommand command = new GetKvsCommand(databaseName, tableName, key);
-        RespObject result;
-        try {
-            result = connectionSupplier.get().send(command.getCommandId(), command.serialize());
-        } catch (ConnectionException e) {
-            throw new DatabaseExecutionException(String.format("ConnectionException when sending command %s",
-                    command.serialize().asString()), e);
-        }
-        if (result.isError()) {
-            throw new DatabaseExecutionException(String.format("Error when executing command %s",
-                    command.serialize().asString()));
-        }
+        RespObject result = handleCommandResult(command);
         return result.asString();
     }
 
     @Override
     public String set(String tableName, String key, String value) throws DatabaseExecutionException {
         KvsCommand command = new SetKvsCommand(databaseName, tableName, key, value);
-        RespObject result;
-        try {
-            result = connectionSupplier.get().send(command.getCommandId(), command.serialize());
-        } catch (ConnectionException e) {
-            throw new DatabaseExecutionException(String.format("ConnectionException when sending command %s",
-                    command.serialize().asString()), e);
-        }
-        if (result.isError()) {
-            throw new DatabaseExecutionException(String.format("Error when executing command %s",
-                    command.serialize().asString()));
-        }
+        RespObject result = handleCommandResult(command);
         return result.asString();
     }
 
     @Override
     public String delete(String tableName, String key) throws DatabaseExecutionException {
         KvsCommand command = new DeleteKvsCommand(databaseName, tableName, key);
-        RespObject result;
-        try {
-            result = connectionSupplier.get().send(command.getCommandId(), command.serialize());
-        } catch (ConnectionException e) {
-            throw new DatabaseExecutionException(String.format("ConnectionException when sending command %s",
-                    command.serialize().asString()), e);
-        }
-        if (result.isError()) {
-            throw new DatabaseExecutionException(String.format("Error when executing command %s",
-                    command.serialize().asString()));
-        }
+        RespObject result = handleCommandResult(command);
         return result.asString();
     }
 }

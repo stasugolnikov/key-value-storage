@@ -32,7 +32,8 @@ public class CreateTableCommand implements DatabaseCommand {
      */
     public CreateTableCommand(ExecutionEnvironment env, List<RespObject> commandArgs) {
         if (commandArgs.size() != VALID_ARGUMENTS_NUMBER) {
-            throw new IllegalArgumentException("Wrong number of arguments");
+            throw new IllegalArgumentException(String.format("Wrong number of arguments: expected %d, but was provided %d",
+                    VALID_ARGUMENTS_NUMBER, commandArgs.size()));
         }
         this.env = env;
         this.commandArgs = commandArgs;
