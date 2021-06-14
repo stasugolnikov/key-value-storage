@@ -9,6 +9,7 @@ import com.itmo.java.protocol.model.RespObject;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 public class RespReader implements AutoCloseable {
 
@@ -18,16 +19,18 @@ public class RespReader implements AutoCloseable {
     private static final byte CR = '\r';
     private static final byte LF = '\n';
 
+    private final InputStream is;
+
     public RespReader(InputStream is) {
-        //TODO implement
+        this.is = is;
     }
 
     /**
      * Есть ли следующий массив в стриме?
      */
     public boolean hasArray() throws IOException {
-        //TODO implement
-        return false;
+        byte code = (byte) is.read();
+        return code == RespArray.CODE;
     }
 
     /**
@@ -38,8 +41,32 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespObject readObject() throws IOException {
-        //TODO implement
-        return null;
+        byte code = (byte) is.read();
+        switch (code) {
+            case RespArray.CODE:
+                return readArray();
+            case RespBulkString.CODE:
+                return readBulkString();
+            case RespCommandId.CODE:
+                return readCommandId();
+            case RespError.CODE:
+                return readError();
+            default:
+                throw new IOException(); // todo message
+        }
+    }
+
+    private int readInt() throws IOException {
+        StringBuilder result = new StringBuilder();
+        byte b;
+        while ((b = (byte) is.read()) != CR) {
+            result.append(b);
+        }
+        long skipped = is.skip(Byte.BYTES);
+        if (skipped != Byte.BYTES) {
+            throw new IOException(); // todo message
+        }
+        return Integer.parseInt(String.valueOf(result));
     }
 
     /**
@@ -49,8 +76,16 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespError readError() throws IOException {
-        //TODO implement
-        return null;
+        StringBuilder result = new StringBuilder();
+        char ch;
+        while ((ch = (char) is.read()) != CR) {
+            result.append(ch);
+        }
+        long skipped = is.skip(Byte.BYTES);
+        if (skipped != Byte.BYTES) {
+            throw new IOException(); // todo comment
+        }
+        return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -60,8 +95,13 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespBulkString readBulkString() throws IOException {
-        //TODO implement
-        return null;
+        int size = readInt();
+        if (size == -1) {
+            return RespBulkString.NULL_STRING;
+        }
+        byte[] data = is.readNBytes(size);
+        is.skipNBytes(RespObject.CRLF.length);
+        return new RespBulkString(data);
     }
 
     /**
@@ -71,8 +111,12 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespArray readArray() throws IOException {
-        //TODO implement
-        return null;
+        int size = readInt();
+        RespArray respArray = new RespArray(readObject());
+        for (int i = 1; i < size; i++) {
+            respArray.getObjects().add(readObject());
+        }
+        return respArray;
     }
 
     /**
@@ -82,13 +126,12 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespCommandId readCommandId() throws IOException {
-        //TODO implement
-        return null;
+        return new RespCommandId(readInt());
     }
 
 
     @Override
     public void close() throws IOException {
-        //TODO implement
+        is.close();
     }
 }
