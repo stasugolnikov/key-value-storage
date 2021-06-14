@@ -100,7 +100,10 @@ public class RespReader implements AutoCloseable {
             return RespBulkString.NULL_STRING;
         }
         byte[] data = is.readNBytes(size);
-        is.skipNBytes(RespObject.CRLF.length);
+        long skipped = is.skip(Byte.BYTES);
+        if (skipped != Byte.BYTES) {
+            throw new IOException(); // todo comment
+        }
         return new RespBulkString(data);
     }
 
