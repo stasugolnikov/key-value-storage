@@ -101,9 +101,6 @@ public class RespReader implements AutoCloseable {
         }
         byte[] data = is.readNBytes(size);
         byte[] crlf = is.readNBytes(2);
-//        if (crlf[0] != CR && crlf[1] != LF) {
-//            throw new IOException(); // todo message
-//        }
         return new RespBulkString(data);
     }
 
