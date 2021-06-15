@@ -14,12 +14,15 @@ import com.itmo.java.basics.initialization.impl.TableInitializer;
 import com.itmo.java.basics.resp.CommandReader;
 import com.itmo.java.protocol.RespReader;
 import com.itmo.java.protocol.RespWriter;
+import com.itmo.java.protocol.model.RespError;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -123,8 +126,17 @@ public class JavaSocketServerConnector implements Closeable {
                 }
             } catch (IOException e) {
                 // InputStream ex todo
+            } catch (ExecutionException e) {
+                try {
+                    RespWriter respWriter = new RespWriter(client.getOutputStream());
+                    respWriter.write(new RespError("".getBytes(StandardCharsets.UTF_8)));
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             } catch (Exception e) {
-                // AutoCloseable exception todo
+                e.printStackTrace();
             }
         }
 

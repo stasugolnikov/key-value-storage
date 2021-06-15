@@ -32,12 +32,16 @@ public class CommandReader implements AutoCloseable {
      * @throws IllegalArgumentException если нет имени команды и id
      */
     public DatabaseCommand readCommand() throws IOException {
-        if (!hasNextCommand()) {
-            throw new IllegalArgumentException(); // todo message
-        }
         RespArray commandArgs = reader.readArray();
         RespObject commandName =
                 commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_NAME.getPositionIndex());
+        RespObject commandId = commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_ID.getPositionIndex());
+        if (commandId == null) {
+            throw new IllegalArgumentException();
+        }
+        if (commandName == null) {
+            throw new IllegalArgumentException();
+        }
         return DatabaseCommands.valueOf(commandName.asString()).getCommand(env, commandArgs.getObjects());
     }
 
