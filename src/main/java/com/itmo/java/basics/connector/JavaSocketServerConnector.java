@@ -129,7 +129,7 @@ public class JavaSocketServerConnector implements Closeable {
             } catch (ExecutionException e) {
                 try {
                     RespWriter respWriter = new RespWriter(client.getOutputStream());
-                    respWriter.write(new RespError("".getBytes(StandardCharsets.UTF_8)));
+                    respWriter.write(new RespError("error".getBytes(StandardCharsets.UTF_8)));
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }

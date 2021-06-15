@@ -16,11 +16,15 @@ import java.net.Socket;
 public class SocketKvsConnection implements KvsConnection {
     private final ConnectionConfig config;
     private final Socket socket;
+    private final RespWriter respWriter;
+    private final RespReader respReader;
 
     public SocketKvsConnection(ConnectionConfig config) {
         this.config = config;
         try {
             this.socket = new Socket(config.getHost(), config.getPort());
+            this.respWriter = new RespWriter(socket.getOutputStream());
+            this.respReader = new RespReader(socket.getInputStream());
         } catch (IOException e) {
             throw new RuntimeException();
         }
@@ -35,9 +39,8 @@ public class SocketKvsConnection implements KvsConnection {
      */
     @Override
     public synchronized RespObject send(int commandId, RespArray command) throws ConnectionException {
-        try (RespWriter respWriter = new RespWriter(socket.getOutputStream());
-             RespReader respReader = new RespReader(socket.getInputStream())) {
-            respWriter.write(new RespArray(new RespCommandId(commandId), command));
+        try {
+            respWriter.write(command);
             return respReader.readObject();
         } catch (IOException e) {
             throw new ConnectionException("");
