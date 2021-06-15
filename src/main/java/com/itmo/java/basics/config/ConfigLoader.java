@@ -34,7 +34,7 @@ public class ConfigLoader {
      * Читаются: "kvs.workingPath", "kvs.host", "kvs.port" (но в конфигурационном файле допустимы и другие проперти)
      */
     public DatabaseServerConfig readConfig() {
-        URL resource = this.getClass().getResource(fileName);
+        URL resource = this.getClass().getClassLoader().getResource(fileName);
         String filePath = resource != null ? resource.getPath() : fileName;
         try (InputStream is = new FileInputStream(filePath)) {
             Properties properties = new Properties();
