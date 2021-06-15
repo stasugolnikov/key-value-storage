@@ -1,5 +1,6 @@
 package com.itmo.java.basics.config;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,11 @@ public class ConfigLoader {
      * По умолчанию читает из server.properties
      */
     public ConfigLoader() {
-        this.filePath = Path.of("server.properties");
+        this.filePath = Path.of(
+                "src" + File.separator +
+                        "main" + File.separator +
+                        "resources" + File.separator +
+                        "server.properties");
     }
 
     /**
