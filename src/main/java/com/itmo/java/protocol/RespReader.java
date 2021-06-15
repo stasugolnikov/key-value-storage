@@ -62,8 +62,8 @@ public class RespReader implements AutoCloseable {
         while ((b = (byte) is.read()) != CR) {
             result.append(b);
         }
-        long skipped = is.skip(Byte.BYTES);
-        if (skipped != Byte.BYTES) {
+        byte lf = (byte) is.read();
+        if (lf != LF) {
             throw new IOException(); // todo message
         }
         return Integer.parseInt(String.valueOf(result));
@@ -81,9 +81,9 @@ public class RespReader implements AutoCloseable {
         while ((ch = (char) is.read()) != CR) {
             result.append(ch);
         }
-        long skipped = is.skip(Byte.BYTES);
-        if (skipped != Byte.BYTES) {
-            throw new IOException(); // todo comment
+        byte lf = (byte) is.read();
+        if (lf != LF) {
+            throw new IOException(); // todo message
         }
         return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
     }
@@ -100,9 +100,9 @@ public class RespReader implements AutoCloseable {
             return RespBulkString.NULL_STRING;
         }
         byte[] data = is.readNBytes(size);
-        long skipped = is.skip(RespObject.CRLF.length);
-        if (skipped != RespObject.CRLF.length) {
-            throw new IOException(); // todo comment
+        byte[] crlf = is.readNBytes(2);
+        if (crlf[0] != CR && crlf[1] != LF) {
+            throw new IOException(); // todo message
         }
         return new RespBulkString(data);
     }
