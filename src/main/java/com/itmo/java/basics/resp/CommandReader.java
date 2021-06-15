@@ -33,7 +33,7 @@ public class CommandReader implements AutoCloseable {
      */
     public DatabaseCommand readCommand() throws IOException {
         if (!hasNextCommand()) {
-            throw new IOException(); // todo message
+            throw new IllegalArgumentException(); // todo message
         }
         RespArray commandArgs = reader.readArray();
         RespObject commandName =
