@@ -33,15 +33,12 @@ public class CommandReader implements AutoCloseable {
      */
     public DatabaseCommand readCommand() throws IOException {
         RespArray commandArgs = reader.readArray();
+        if (commandArgs.getObjects().size() < 2) {
+            throw new IllegalArgumentException();
+        }
         RespObject commandName =
                 commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_NAME.getPositionIndex());
         RespObject commandId = commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_ID.getPositionIndex());
-        if (commandId == null) {
-            throw new IllegalArgumentException();
-        }
-        if (commandName == null) {
-            throw new IllegalArgumentException();
-        }
         return DatabaseCommands.valueOf(commandName.asString()).getCommand(env, commandArgs.getObjects());
     }
 
