@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -116,8 +117,8 @@ public class JavaSocketServerConnector implements Closeable {
                 while (!client.isClosed()) {
                     if (commandReader.hasNextCommand()) {
                         DatabaseCommand dbCommand = commandReader.readCommand();
-                        DatabaseCommandResult result = dbCommand.execute();
-                        respWriter.write(result.serialize());
+                        CompletableFuture<DatabaseCommandResult> result = server.executeNextCommand(dbCommand);
+                        respWriter.write(result.get().serialize());
                     }
                 }
             } catch (IOException e) {
