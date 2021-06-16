@@ -38,7 +38,6 @@ public class CommandReader implements AutoCloseable {
         }
         RespObject commandName =
                 commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_NAME.getPositionIndex());
-        RespObject commandId = commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_ID.getPositionIndex());
         return DatabaseCommands.valueOf(commandName.asString()).getCommand(env, commandArgs.getObjects());
     }
 

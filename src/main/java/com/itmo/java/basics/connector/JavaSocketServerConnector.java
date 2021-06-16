@@ -133,8 +133,6 @@ public class JavaSocketServerConnector implements Closeable {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
             }

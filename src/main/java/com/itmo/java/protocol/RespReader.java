@@ -9,7 +9,11 @@ import com.itmo.java.protocol.model.RespObject;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class RespReader implements AutoCloseable {
 
@@ -42,6 +46,9 @@ public class RespReader implements AutoCloseable {
      */
     public RespObject readObject() throws IOException {
         byte code = (byte) is.read();
+        if (code == -1) {
+            throw new EOFException();
+        }
         switch (code) {
             case RespArray.CODE:
                 return readArray();
@@ -57,16 +64,17 @@ public class RespReader implements AutoCloseable {
     }
 
     private int readInt() throws IOException {
-        StringBuilder result = new StringBuilder();
+        List<Byte> result = new ArrayList<>();
         byte b;
         while ((b = (byte) is.read()) != CR) {
-            result.append(b);
+            result.add(b);
         }
         byte lf = (byte) is.read();
-        if (lf != LF) {
-            throw new IOException(); // todo message
+        byte[] byteArray = new byte[result.size()];
+        for (int i = 0; i < result.size(); i++) {
+            byteArray[i] = result.get(i);
         }
-        return Integer.parseInt(String.valueOf(result));
+        return Integer.parseInt(new String(byteArray));
     }
 
     /**
@@ -112,11 +120,11 @@ public class RespReader implements AutoCloseable {
      */
     public RespArray readArray() throws IOException {
         int size = readInt();
-        RespArray respArray = new RespArray(readObject());
-        for (int i = 1; i < size; i++) {
-            respArray.getObjects().add(readObject());
+        RespObject[] objects = new RespObject[size];
+        for (int i = 0; i < size; i++) {
+            objects[i] = readObject();
         }
-        return respArray;
+        return new RespArray(objects);
     }
 
     /**
@@ -126,7 +134,9 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespCommandId readCommandId() throws IOException {
-        return new RespCommandId(readInt());
+        int id = ByteBuffer.wrap(is.readNBytes(Integer.BYTES)).getInt();
+        byte[] ignoreCrlf = is.readNBytes(2);
+        return new RespCommandId(id);
     }
 
 

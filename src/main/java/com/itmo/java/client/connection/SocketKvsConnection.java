@@ -43,7 +43,7 @@ public class SocketKvsConnection implements KvsConnection {
             respWriter.write(command);
             return respReader.readObject();
         } catch (IOException e) {
-            throw new ConnectionException("");
+            throw new ConnectionException("еее");
         }
     }
 
