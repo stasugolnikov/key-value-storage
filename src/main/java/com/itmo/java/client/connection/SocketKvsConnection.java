@@ -22,10 +22,19 @@ public class SocketKvsConnection implements KvsConnection {
         this.config = config;
         try {
             this.socket = new Socket(config.getHost(), config.getPort());
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("IOException when opening socket on host %s and port %s",
+                    config.getHost(), config.getPort()));
+        }
+        try {
             this.respWriter = new RespWriter(socket.getOutputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("IOException when getting OutputStream in socket %s", socket));
+        }
+        try {
             this.respReader = new RespReader(socket.getInputStream());
         } catch (IOException e) {
-            throw new RuntimeException();
+            throw new RuntimeException(String.format("IOException when getting InputStream in socket %s", socket));
         }
     }
 
@@ -38,14 +47,18 @@ public class SocketKvsConnection implements KvsConnection {
      */
     @Override
     public synchronized RespObject send(int commandId, RespArray command) throws ConnectionException {
+        if (socket.isClosed()) {
+            throw new ConnectionException(String.format("Socket %s is closed", socket));
+        }
         try {
-            if (socket.isClosed()) {
-                throw new ConnectionException(""); // todo message
-            }
             respWriter.write(command);
+        } catch (IOException e) {
+            throw new ConnectionException(String.format("IOException when writing command in socket %s", socket));
+        }
+        try {
             return respReader.readObject();
         } catch (IOException e) {
-            throw new ConnectionException(""); // todo message
+            throw new ConnectionException(String.format("IOException when reading result from socket %s", socket));
         }
     }
 
@@ -57,7 +70,17 @@ public class SocketKvsConnection implements KvsConnection {
         try {
             socket.close();
         } catch (IOException e) {
-            // todo
+            throw new RuntimeException(String.format("IOException when closing socket %s", socket));
+        }
+        try {
+            respReader.close();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("IOException when closing resp reader %s", respReader));
+        }
+        try {
+            respWriter.close();
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("IOException when closing resp writer %s", respWriter));
         }
     }
 }

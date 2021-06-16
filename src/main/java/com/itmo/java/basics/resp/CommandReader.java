@@ -34,7 +34,7 @@ public class CommandReader implements AutoCloseable {
     public DatabaseCommand readCommand() throws IOException {
         RespArray commandArgs = reader.readArray();
         if (commandArgs.getObjects().size() < 2) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Command args can't have less then 2 objects");
         }
         RespObject commandName =
                 commandArgs.getObjects().get(DatabaseCommandArgPositions.COMMAND_NAME.getPositionIndex());

@@ -14,13 +14,11 @@ import com.itmo.java.basics.initialization.impl.TableInitializer;
 import com.itmo.java.basics.resp.CommandReader;
 import com.itmo.java.protocol.RespReader;
 import com.itmo.java.protocol.RespWriter;
-import com.itmo.java.protocol.model.RespError;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -60,7 +58,7 @@ public class JavaSocketServerConnector implements Closeable {
                     Socket client = serverSocket.accept();
                     clientIOWorkers.submit(new ClientTask(client, databaseServer));
                 } catch (IOException e) {
-                    // todo ???
+                    System.out.printf("IOException when accepting in server socket %s%n", serverSocket);
                 }
             }
         });
@@ -77,7 +75,7 @@ public class JavaSocketServerConnector implements Closeable {
             clientIOWorkers.shutdownNow();
             connectionAcceptorExecutor.shutdownNow();
         } catch (IOException e) {
-            // todo ???
+            throw new RuntimeException(String.format("IOException when closing server socket %s", serverSocket));
         }
     }
 
@@ -118,23 +116,35 @@ public class JavaSocketServerConnector implements Closeable {
             try (CommandReader commandReader = new CommandReader(new RespReader(client.getInputStream()), server.getEnv());
                  RespWriter respWriter = new RespWriter(client.getOutputStream())) {
                 while (!client.isClosed()) {
-                    if (commandReader.hasNextCommand()) {
-                        DatabaseCommand dbCommand = commandReader.readCommand();
-                        CompletableFuture<DatabaseCommandResult> result = server.executeNextCommand(dbCommand);
-                        respWriter.write(result.get().serialize());
+                    try {
+                        if (commandReader.hasNextCommand()) {
+                            DatabaseCommand dbCommand;
+                            try {
+                                dbCommand = commandReader.readCommand();
+                            } catch (IOException e) {
+                                System.out.printf("IOException when reading command in %s%n", commandReader);
+                                continue;
+                            }
+                            CompletableFuture<DatabaseCommandResult> result = server.executeNextCommand(dbCommand);
+                            try {
+                                respWriter.write(result.get().serialize());
+                            } catch (IOException e) {
+                                System.out.printf("IOException when writing result in %s%n", respWriter);
+                            } catch (InterruptedException e) {
+                                System.out.println("InterruptedException when getting command result");
+                            } catch (ExecutionException e) {
+                                System.out.println("ExecutionException when getting command result");
+                            }
+                        }
+                    } catch (IOException e) {
+                        System.out.printf("IOException when checking next command in command reader %s%n",
+                                commandReader);
                     }
                 }
             } catch (IOException e) {
-                // InputStream ex todo
-            } catch (ExecutionException e) {
-                try {
-                    RespWriter respWriter = new RespWriter(client.getOutputStream());
-                    respWriter.write(new RespError("error".getBytes(StandardCharsets.UTF_8)));
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
+                System.out.printf("IOException when getting stream from socket %s%n", client);
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println("Exception when closing command reader");
             }
         }
 
@@ -146,7 +156,7 @@ public class JavaSocketServerConnector implements Closeable {
             try {
                 client.close();
             } catch (IOException e) {
-                // todo
+                throw new RuntimeException(String.format("IOException when closing socket %s", client));
             }
         }
     }
