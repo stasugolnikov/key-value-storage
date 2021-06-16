@@ -116,7 +116,7 @@ public class RespReader implements AutoCloseable {
         if (lf == -1) {
             throw new EOFException();
         }
-        if (lf != CR) {
+        if (lf != LF) {
             throw new IOException();
         }
     }
