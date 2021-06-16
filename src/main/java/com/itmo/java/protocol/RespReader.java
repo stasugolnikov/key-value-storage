@@ -67,6 +67,9 @@ public class RespReader implements AutoCloseable {
         List<Byte> result = new ArrayList<>();
         byte b;
         while ((b = (byte) is.read()) != CR) {
+            if (b == -1) {
+                throw new EOFException();
+            }
             result.add(b);
         }
         byte ignoreLf = (byte) is.read();
@@ -87,6 +90,9 @@ public class RespReader implements AutoCloseable {
         StringBuilder result = new StringBuilder();
         char ch;
         while ((ch = (char) is.read()) != CR) {
+            if ((byte) ch == -1) {
+                throw new EOFException();
+            }
             result.append(ch);
         }
         byte ignoreLf = (byte) is.read();
@@ -105,6 +111,9 @@ public class RespReader implements AutoCloseable {
             return RespBulkString.NULL_STRING;
         }
         byte[] data = is.readNBytes(size);
+        if (data.length != size) {
+            throw new EOFException();
+        }
         byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
         return new RespBulkString(data);
     }
