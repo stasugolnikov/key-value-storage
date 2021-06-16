@@ -65,26 +65,6 @@ public class RespReader implements AutoCloseable {
         }
     }
 
-    private int readInt() throws IOException {
-        List<Byte> result = new ArrayList<>();
-        byte b;
-        while ((b = (byte) is.read()) != CR) {
-            if (b == -1) {
-                throw new EOFException();
-            }
-            result.add(b);
-        }
-        byte ignoreLf = (byte) is.read();
-        if (ignoreLf == -1) {
-            throw new EOFException();
-        }
-        byte[] byteArray = new byte[result.size()];
-        for (int i = 0; i < result.size(); i++) {
-            byteArray[i] = result.get(i);
-        }
-        return Integer.parseInt(new String(byteArray));
-    }
-
     /**
      * Считывает объект ошибки
      *
@@ -100,11 +80,45 @@ public class RespReader implements AutoCloseable {
             }
             result.append(ch);
         }
-        byte ignoreLf = (byte) is.read();
-        if (ignoreLf == -1) {
+        readLf();
+        return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private int readSize() throws IOException {
+        List<Byte> result = new ArrayList<>();
+        byte b;
+        while ((b = (byte) is.read()) != CR) {
+            if (b == -1) {
+                throw new EOFException();
+            }
+            result.add(b);
+        }
+        readLf();
+        byte[] byteArray = new byte[result.size()];
+        for (int i = 0; i < result.size(); i++) {
+            byteArray[i] = result.get(i);
+        }
+        return Integer.parseInt(new String(byteArray));
+    }
+
+    private void readCr() throws IOException {
+        byte cr = (byte) is.read();
+        if (cr == -1) {
             throw new EOFException();
         }
-        return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
+        if (cr != CR) {
+            throw new IOException();
+        }
+    }
+
+    private void readLf() throws IOException {
+        byte lf = (byte) is.read();
+        if (lf == -1) {
+            throw new EOFException();
+        }
+        if (lf != CR) {
+            throw new IOException();
+        }
     }
 
     /**
@@ -114,7 +128,7 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespBulkString readBulkString() throws IOException {
-        int size = readInt();
+        int size = readSize();
         if (size == -1) {
             return RespBulkString.NULL_STRING;
         }
@@ -122,10 +136,8 @@ public class RespReader implements AutoCloseable {
         if (data.length != size) {
             throw new EOFException();
         }
-        byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
-        if (ignoreCrlf.length < 2) {
-            throw new EOFException();
-        }
+        readCr();
+        readLf();
         return new RespBulkString(data);
     }
 
@@ -136,7 +148,7 @@ public class RespReader implements AutoCloseable {
      * @throws IOException  при ошибке чтения
      */
     public RespArray readArray() throws IOException {
-        int size = readInt();
+        int size = readSize();
         RespObject[] objects = new RespObject[size];
         for (int i = 0; i < size; i++) {
             objects[i] = readObject();
@@ -155,10 +167,8 @@ public class RespReader implements AutoCloseable {
         if (id == -1) {
             throw new EOFException();
         }
-        byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
-        if (ignoreCrlf.length < 2) {
-            throw new EOFException();
-        }
+        readCr();
+        readLf();
         return new RespCommandId(id);
     }
 

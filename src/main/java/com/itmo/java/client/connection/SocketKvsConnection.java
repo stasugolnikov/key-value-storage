@@ -40,12 +40,12 @@ public class SocketKvsConnection implements KvsConnection {
     public synchronized RespObject send(int commandId, RespArray command) throws ConnectionException {
         try {
             if (socket.isClosed()) {
-                throw new ConnectionException("");
+                throw new ConnectionException(""); // todo message
             }
             respWriter.write(command);
             return respReader.readObject();
         } catch (IOException e) {
-            throw new ConnectionException("еее");
+            throw new ConnectionException(""); // todo message
         }
     }
 
