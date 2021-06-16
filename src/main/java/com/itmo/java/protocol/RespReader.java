@@ -47,7 +47,7 @@ public class RespReader implements AutoCloseable {
     public RespObject readObject() throws IOException {
         byte code = (byte) is.read();
         if (code == -1) {
-            throw new EOFException();
+            throw new EOFException(); // todo message
         }
         switch (code) {
             case RespArray.CODE:
@@ -69,7 +69,7 @@ public class RespReader implements AutoCloseable {
         while ((b = (byte) is.read()) != CR) {
             result.add(b);
         }
-        byte lf = (byte) is.read();
+        byte ignoreLf = (byte) is.read();
         byte[] byteArray = new byte[result.size()];
         for (int i = 0; i < result.size(); i++) {
             byteArray[i] = result.get(i);
@@ -89,10 +89,7 @@ public class RespReader implements AutoCloseable {
         while ((ch = (char) is.read()) != CR) {
             result.append(ch);
         }
-        byte lf = (byte) is.read();
-        if (lf != LF) {
-            throw new IOException(); // todo message
-        }
+        byte ignoreLf = (byte) is.read();
         return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -108,7 +105,7 @@ public class RespReader implements AutoCloseable {
             return RespBulkString.NULL_STRING;
         }
         byte[] data = is.readNBytes(size);
-        byte[] crlf = is.readNBytes(2);
+        byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
         return new RespBulkString(data);
     }
 
@@ -135,7 +132,7 @@ public class RespReader implements AutoCloseable {
      */
     public RespCommandId readCommandId() throws IOException {
         int id = ByteBuffer.wrap(is.readNBytes(Integer.BYTES)).getInt();
-        byte[] ignoreCrlf = is.readNBytes(2);
+        byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
         return new RespCommandId(id);
     }
 

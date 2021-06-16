@@ -41,7 +41,11 @@ public class SocketKvsConnection implements KvsConnection {
     public synchronized RespObject send(int commandId, RespArray command) throws ConnectionException {
         try {
             respWriter.write(command);
-            return respReader.readObject();
+            RespObject response = respReader.readObject();
+            if (response.isError()) {
+                throw new ConnectionException("");
+            }
+            return response;
         } catch (IOException e) {
             throw new ConnectionException("еее");
         }
