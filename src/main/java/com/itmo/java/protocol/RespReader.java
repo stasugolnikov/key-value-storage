@@ -34,6 +34,9 @@ public class RespReader implements AutoCloseable {
      */
     public boolean hasArray() throws IOException {
         byte code = (byte) is.read();
+        if (code == -1) {
+            throw new EOFException();
+        }
         return code == RespArray.CODE;
     }
 
@@ -90,7 +93,7 @@ public class RespReader implements AutoCloseable {
         StringBuilder result = new StringBuilder();
         char ch;
         while ((ch = (char) is.read()) != CR) {
-            if ((byte) ch == -1) {
+            if (ch == 65535) {
                 throw new EOFException();
             }
             result.append(ch);
