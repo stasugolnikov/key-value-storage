@@ -75,6 +75,9 @@ public class RespReader implements AutoCloseable {
             result.add(b);
         }
         byte ignoreLf = (byte) is.read();
+        if (ignoreLf == -1) {
+            throw new EOFException();
+        }
         byte[] byteArray = new byte[result.size()];
         for (int i = 0; i < result.size(); i++) {
             byteArray[i] = result.get(i);
@@ -98,6 +101,9 @@ public class RespReader implements AutoCloseable {
             result.append(ch);
         }
         byte ignoreLf = (byte) is.read();
+        if (ignoreLf == -1) {
+            throw new EOFException();
+        }
         return new RespError(String.valueOf(result).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -117,6 +123,9 @@ public class RespReader implements AutoCloseable {
             throw new EOFException();
         }
         byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
+        if (ignoreCrlf.length < 2) {
+            throw new EOFException();
+        }
         return new RespBulkString(data);
     }
 
@@ -147,6 +156,9 @@ public class RespReader implements AutoCloseable {
             throw new EOFException();
         }
         byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
+        if (ignoreCrlf.length < 2) {
+            throw new EOFException();
+        }
         return new RespCommandId(id);
     }
 
