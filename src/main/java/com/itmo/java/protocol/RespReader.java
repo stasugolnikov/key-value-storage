@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class RespReader implements AutoCloseable {
@@ -93,7 +92,7 @@ public class RespReader implements AutoCloseable {
         StringBuilder result = new StringBuilder();
         char ch;
         while ((ch = (char) is.read()) != CR) {
-            if (ch == 65535) {
+            if ((byte) ch == -1) {
                 throw new EOFException();
             }
             result.append(ch);
@@ -144,6 +143,9 @@ public class RespReader implements AutoCloseable {
      */
     public RespCommandId readCommandId() throws IOException {
         int id = ByteBuffer.wrap(is.readNBytes(Integer.BYTES)).getInt();
+        if (id == -1) {
+            throw new EOFException();
+        }
         byte[] ignoreCrlf = is.readNBytes(RespObject.CRLF.length);
         return new RespCommandId(id);
     }
