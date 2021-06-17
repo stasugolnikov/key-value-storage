@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RespReader implements AutoCloseable {
+    private static final int END_OF_STREAM = -1;
 
     /**
      * Специальные символы окончания элемента
@@ -33,7 +34,7 @@ public class RespReader implements AutoCloseable {
      */
     public boolean hasArray() throws IOException {
         byte code = (byte) is.read();
-        if (code == -1) {
+        if (code == END_OF_STREAM) {
             throw new EOFException(String.format("End of file in stream %s", is));
         }
         return code == RespArray.CODE;
@@ -48,7 +49,7 @@ public class RespReader implements AutoCloseable {
      */
     public RespObject readObject() throws IOException {
         byte code = (byte) is.read();
-        if (code == -1) {
+        if (code == END_OF_STREAM) {
             throw new EOFException(String.format("End of file in stream %s", is));
         }
         switch (code) {
@@ -75,7 +76,7 @@ public class RespReader implements AutoCloseable {
         StringBuilder result = new StringBuilder();
         char ch;
         while ((ch = (char) is.read()) != CR) {
-            if ((byte) ch == -1) {
+            if ((byte) ch == END_OF_STREAM) {
                 throw new EOFException(String.format("End of file in stream %s", is));
             }
             result.append(ch);
@@ -88,7 +89,7 @@ public class RespReader implements AutoCloseable {
         List<Byte> result = new ArrayList<>();
         byte b;
         while ((b = (byte) is.read()) != CR) {
-            if (b == -1) {
+            if (b == END_OF_STREAM) {
                 throw new EOFException(String.format("End of file in stream %s", is));
             }
             result.add(b);
@@ -103,7 +104,7 @@ public class RespReader implements AutoCloseable {
 
     private void readCr() throws IOException {
         byte cr = (byte) is.read();
-        if (cr == -1) {
+        if (cr == END_OF_STREAM) {
             throw new EOFException(String.format("End of file in stream %s", is));
         }
         if (cr != CR) {
@@ -113,7 +114,7 @@ public class RespReader implements AutoCloseable {
 
     private void readLf() throws IOException {
         byte lf = (byte) is.read();
-        if (lf == -1) {
+        if (lf == END_OF_STREAM) {
             throw new EOFException(String.format("End of file in stream %s", is));
         }
         if (lf != LF) {
@@ -129,7 +130,7 @@ public class RespReader implements AutoCloseable {
      */
     public RespBulkString readBulkString() throws IOException {
         int size = readSize();
-        if (size == -1) {
+        if (size == END_OF_STREAM) {
             return RespBulkString.NULL_STRING;
         }
         byte[] data = is.readNBytes(size);
@@ -164,7 +165,7 @@ public class RespReader implements AutoCloseable {
      */
     public RespCommandId readCommandId() throws IOException {
         int id = ByteBuffer.wrap(is.readNBytes(Integer.BYTES)).getInt();
-        if (id == -1) {
+        if (id == END_OF_STREAM) {
             throw new EOFException(String.format("End of file in stream %s", is));
         }
         readCr();
