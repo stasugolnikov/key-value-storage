@@ -19,8 +19,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -58,7 +56,7 @@ public class JavaSocketServerConnector implements Closeable {
                     Socket client = serverSocket.accept();
                     clientIOWorkers.submit(new ClientTask(client, databaseServer));
                 } catch (IOException e) {
-                    System.out.printf("IOException when accepting in server socket %s%n", serverSocket);
+                    e.printStackTrace();
                 }
             }
         });
@@ -75,7 +73,7 @@ public class JavaSocketServerConnector implements Closeable {
             clientIOWorkers.shutdownNow();
             connectionAcceptorExecutor.shutdownNow();
         } catch (IOException e) {
-            throw new RuntimeException(String.format("IOException when closing server socket %s", serverSocket));
+            e.printStackTrace();
         }
     }
 
@@ -115,36 +113,13 @@ public class JavaSocketServerConnector implements Closeable {
         public void run() {
             try (CommandReader commandReader = new CommandReader(new RespReader(client.getInputStream()), server.getEnv());
                  RespWriter respWriter = new RespWriter(client.getOutputStream())) {
-                while (!client.isClosed()) {
-                    try {
-                        if (commandReader.hasNextCommand()) {
-                            DatabaseCommand dbCommand;
-                            try {
-                                dbCommand = commandReader.readCommand();
-                            } catch (IOException e) {
-                                System.out.printf("IOException when reading command in %s%n", commandReader);
-                                continue;
-                            }
-                            CompletableFuture<DatabaseCommandResult> result = server.executeNextCommand(dbCommand);
-                            try {
-                                respWriter.write(result.get().serialize());
-                            } catch (IOException e) {
-                                System.out.printf("IOException when writing result in %s%n", respWriter);
-                            } catch (InterruptedException e) {
-                                System.out.println("InterruptedException when getting command result");
-                            } catch (ExecutionException e) {
-                                System.out.println("ExecutionException when getting command result");
-                            }
-                        }
-                    } catch (IOException e) {
-                        System.out.printf("IOException when checking next command in command reader %s%n",
-                                commandReader);
-                    }
+                while (commandReader.hasNextCommand()) {
+                    DatabaseCommand command = commandReader.readCommand();
+                    DatabaseCommandResult result = server.executeNextCommand(command).get();
+                    respWriter.write(result.serialize());
                 }
-            } catch (IOException e) {
-                System.out.printf("IOException when getting stream from socket %s%n", client);
             } catch (Exception e) {
-                System.out.println("Exception when closing command reader");
+                e.printStackTrace();
             }
         }
 
@@ -156,7 +131,7 @@ public class JavaSocketServerConnector implements Closeable {
             try {
                 client.close();
             } catch (IOException e) {
-                throw new RuntimeException(String.format("IOException when closing socket %s", client));
+                e.printStackTrace();
             }
         }
     }
