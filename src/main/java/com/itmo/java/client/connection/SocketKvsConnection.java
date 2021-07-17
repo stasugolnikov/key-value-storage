@@ -69,13 +69,28 @@ public class SocketKvsConnection implements KvsConnection {
     public void close() {
         try {
             socket.close();
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("IOException when closing socket %s", socket), e);
+        } catch (IOException e1) {
+            try {
+                respReader.close();
+            } catch (IOException e2) {
+                try {
+                    respWriter.close();
+                } catch (IOException e3) {
+                    throw new RuntimeException(String.format("IOException when closing resp writer %s", respWriter), e3);
+                }
+                throw new RuntimeException(String.format("IOException when closing resp reader %s", respReader), e2);
+            }
+            throw new RuntimeException(String.format("IOException when closing socket %s", socket), e1);
         }
         try {
             respReader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("IOException when closing resp reader %s", respReader), e);
+        } catch (IOException e1) {
+            try {
+                respWriter.close();
+            } catch (IOException e2) {
+                throw new RuntimeException(String.format("IOException when closing resp writer %s", respWriter), e2);
+            }
+            throw new RuntimeException(String.format("IOException when closing resp reader %s", respReader), e1);
         }
         try {
             respWriter.close();
